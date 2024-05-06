@@ -2,6 +2,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Body, HTTPException, status
 from pydantic import UUID4
 from sqlalchemy.future import select
+from fastapi_pagination import LimitOffsetPage, paginate
 
 from workoutapi.centro_treinamento.models import CentroTreinamentoModel
 from workoutapi.centro_treinamento.schemas import (
@@ -38,13 +39,18 @@ async def post(
     "/",
     summary="Consultar todas os centro de treinamento",
     status_code=status.HTTP_200_OK,
-    response_model=list[CentroTreinamentoOut],
+    response_model=LimitOffsetPage[list],
 )
-async def query(db_session: DatabaseDependency) -> list[CentroTreinamentoOut]:
-    categorias: list[CentroTreinamentoOut] = (
+async def query(db_session: DatabaseDependency) -> LimitOffsetPage[list]:
+    centros_treinamentos: list[CentroTreinamentoOut] = (
         (await db_session.execute(select(CentroTreinamentoModel))).scalars().all()
     )
-    return categorias
+
+    lista = [
+        CentroTreinamentoOut.model_validate(centros_treinamento)
+        for centros_treinamento in centros_treinamentos
+    ]
+    return paginate(lista)
 
 
 @router.get(
