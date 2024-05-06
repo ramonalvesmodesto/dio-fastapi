@@ -78,10 +78,32 @@ async def post(db_session: DatabaseDependency, atleta_in: AtletaIn = Body(...)):
     status_code=status.HTTP_200_OK,
     response_model=list[AtletaOut],
 )
-async def query(db_session: DatabaseDependency) -> list[AtletaOut]:
-    atletas: list[AtletaOut] = (
-        (await db_session.execute(select(AtletaModel))).scalars().all()
-    )
+async def query(
+    db_session: DatabaseDependency, nome: str = None, cpf: str = None
+) -> list[AtletaOut]:
+    if nome is not None:
+        atletas: list[AtletaOut] = (
+            (await db_session.execute(select(AtletaModel).filter_by(nome=nome)))
+            .scalars()
+            .all()
+        )
+
+        if atletas[0].cpf != cpf:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Não possui nenhum usuário {nome } com o cpf {cpf}",
+            )
+
+    elif cpf is not None:
+        atletas: list[AtletaOut] = (
+            (await db_session.execute(select(AtletaModel).filter_by(cpf=cpf)))
+            .scalars()
+            .all()
+        )
+    else:
+        atletas: list[AtletaOut] = (
+            (await db_session.execute(select(AtletaModel))).scalars().all()
+        )
     return [AtletaOut.model_validate(atleta) for atleta in atletas]
 
 
