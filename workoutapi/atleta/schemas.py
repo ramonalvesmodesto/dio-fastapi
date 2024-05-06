@@ -48,3 +48,20 @@ class AtletaUpdate(BaseSchema):
     idade: Annotated[
         Optional[int], Field(None, description="Idade do atleta", example=25)
     ]
+
+
+class AtletaCustom(BaseSchema):
+    nome: Annotated[
+        str, Field(description="Nome do atleta", example="Joao", max_length=50)
+    ]
+    categoria: Annotated[
+        CategoriaIn,
+        Field(description="Nome da categoria", example={"nome": "Scale"}),
+    ]
+    centros_treinamentos: Annotated[
+        CentroTreinamentoAtleta,
+        Field(
+            description="Nome do centor de treinamento",
+            example={"nome": "CT King"},
+        ),
+    ]
